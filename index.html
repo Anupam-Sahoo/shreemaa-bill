@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A4 GST Billing Software - SHREE MAA ELECTRICALS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        input.bill-display-input {
+           border: 1px solid #e5e7eb;
+           border-radius: 4px;
+           padding: 2px 4px;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            /* Hide non-essential elements */
+            .no-print {
+                display: none !important;
+            }
+
+            /* A4 Page Setup */
+            @page {
+                size: a4;
+                margin: 0; /* Reset browser default margins */
+            }
+
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                -webkit-print-color-adjust: exact; /* Ensures colors and backgrounds print */
+            }
+            
+            body {
+                margin: 1.5cm; /* Set custom margins for the content */
+            }
+
+            /* Bill Layout for Printing */
+            #bill-section {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                height: calc(297mm - 3cm); /* Full A4 height minus top/bottom margins */
+                border: none;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .bill-content {
+                flex-grow: 1; /* Allows content to fill space, pushing footer down */
+            }
+
+            .bill-footer {
+                flex-shrink: 0; /* Prevents footer from shrinking */
+            }
+
+            /* Ensure input values are printed correctly */
+            input.bill-display-input {
+                border: none !important;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                padding: 0;
+                margin: 0;
+                background: transparent;
+                font-size: inherit;
+                font-family: inherit;
+                color: inherit;
+                font-weight: inherit;
+            }
+
+            /* Table page break handling */
+            table {
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            thead {
+                display: table-header-group; /* Repeats table header on each page */
+            }
+            tbody {
+                display: table-row-group;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <header class="text-center mb-8 no-print">
+            <h1 class="text-4xl font-bold text-gray-900">GST Billing Software</h1>
+            <p class="text-gray-600 mt-2">Easily create and manage your GST invoices.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+            <!-- Left Side: Input Forms -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md no-print space-y-8">
+                <!-- Shop Settings Form -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-6 border-b pb-3">Shop Settings</h2>
+                    <form id="shop-settings-form" class="space-y-4">
+                        <div>
+                            <label for="shop-name" class="block text-sm font-medium text-gray-700">Shop Name</label>
+                            <input type="text" id="shop-name" value="SHREE MAA ELECTRICALS" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="shop-address" class="block text-sm font-medium text-gray-700">Address</label>
+                            <input type="text" id="shop-address" value="Bhubaneswar, Odisha, India" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="shop-gstin" class="block text-sm font-medium text-gray-700">Shop GSTIN</label>
+                            <input type="text" id="shop-gstin" value="21ABCDE1234F1Z5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Customer Details Form -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-6 border-b pb-3">Customer Details</h2>
+                    <form id="customer-form" class="space-y-4">
+                        <div>
+                            <label for="customer-name" class="block text-sm font-medium text-gray-700">Customer Name</label>
+                            <input type="text" id="customer-name" placeholder="e.g., John Doe" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="customer-gstin" class="block text-sm font-medium text-gray-700">Customer GSTIN (Optional)</label>
+                            <input type="text" id="customer-gstin" placeholder="e.g., 22AAAAA0000A1Z5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Item Entry Form -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-6 border-b pb-3">Add New Item</h2>
+                    <form id="item-form" class="space-y-4">
+                        <div>
+                            <label for="item-name" class="block text-sm font-medium text-gray-700">Item Name</label>
+                            <input type="text" id="item-name" placeholder="e.g., LED Bulb" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        </div>
+                         <div>
+                            <label for="item-hsn" class="block text-sm font-medium text-gray-700">HSN/SAC Code</label>
+                            <input type="text" id="item-hsn" placeholder="e.g., 8539" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="item-quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                                <input type="number" id="item-quantity" value="1" min="1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                            </div>
+                            <div>
+                                <label for="item-price" class="block text-sm font-medium text-gray-700">Price (per item)</label>
+                                <input type="number" id="item-price" placeholder="e.g., 150.00" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                            Add Item
+                        </button>
+                    </form>
+                    <div id="error-message" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md"></div>
+                </div>
+            </div>
+
+            <!-- Right Side: Bill Display -->
+            <div id="bill-section" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md">
+                <div class="bill-content">
+                    <div class="text-center mb-4 border-b pb-4">
+                         <h2 id="display-shop-name" class="text-3xl font-bold text-gray-900"></h2>
+                         <p id="display-shop-address" class="text-sm text-gray-500"></p>
+                         <p class="text-sm text-gray-500">GSTIN: <span id="display-shop-gstin" class="font-mono"></span></p>
+                    </div>
+                    <h3 class="text-xl font-bold text-center">Tax Invoice</h3>
+                    <div class="flex justify-between text-sm text-gray-600 my-2">
+                        <span>Bill No: <input type="text" id="bill-number-input" class="font-mono bill-display-input w-24"></span>
+                        <span>Date: <input type="date" id="bill-date-input" class="font-mono bill-display-input"></span>
+                    </div>
+                    <div class="border-t border-b py-2 my-2">
+                        <p class="text-sm"><strong>Billed to:</strong> <span id="display-customer-name">N/A</span></p>
+                        <p class="text-sm"><strong>GSTIN:</strong> <span id="display-customer-gstin">N/A</span></p>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-xs">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-2 py-2 text-left font-medium text-gray-500 uppercase">Item</th>
+                                    <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase">HSN</th>
+                                    <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase">Qty</th>
+                                    <th class="px-2 py-2 text-right font-medium text-gray-500 uppercase">Price</th>
+                                    <th class="px-2 py-2 text-right font-medium text-gray-500 uppercase">Total</th>
+                                    <th class="px-2 py-2 text-center font-medium text-gray-500 uppercase no-print">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bill-items" class="bg-white divide-y divide-gray-200">
+                                <tr id="placeholder-row"><td colspan="6" class="px-2 py-4 text-center text-gray-500">No items added.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bill-footer">
+                    <div class="mt-6 border-t pt-4 space-y-2 text-sm">
+                        <div class="flex justify-between font-medium">
+                            <span>Subtotal</span>
+                            <span id="subtotal">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>CGST (9%)</span>
+                            <span id="cgst">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>SGST (9%)</span>
+                            <span id="sgst">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold text-gray-900 border-t pt-2 mt-2">
+                            <span>Grand Total</span>
+                            <span id="grand-total">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end space-x-3 no-print">
+                        <button id="clear-bill" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Clear</button>
+                        <button id="print-bill" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">Print Bill</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE ---
+            let billItems = [];
+            const CGST_RATE = 0.09;
+            const SGST_RATE = 0.09;
+
+            // --- DOM ELEMENTS ---
+            const shopNameInput = document.getElementById('shop-name'),
+                  shopAddressInput = document.getElementById('shop-address'),
+                  shopGstinInput = document.getElementById('shop-gstin'),
+                  displayShopName = document.getElementById('display-shop-name'),
+                  displayShopAddress = document.getElementById('display-shop-address'),
+                  displayShopGstin = document.getElementById('display-shop-gstin'),
+                  customerNameInput = document.getElementById('customer-name'),
+                  customerGstinInput = document.getElementById('customer-gstin'),
+                  displayCustomerName = document.getElementById('display-customer-name'),
+                  displayCustomerGstin = document.getElementById('display-customer-gstin'),
+                  itemForm = document.getElementById('item-form'),
+                  itemNameInput = document.getElementById('item-name'),
+                  itemHsnInput = document.getElementById('item-hsn'),
+                  itemQuantityInput = document.getElementById('item-quantity'),
+                  itemPriceInput = document.getElementById('item-price'),
+                  billItemsTableBody = document.getElementById('bill-items'),
+                  placeholderRow = document.getElementById('placeholder-row'),
+                  subtotalEl = document.getElementById('subtotal'),
+                  cgstEl = document.getElementById('cgst'),
+                  sgstEl = document.getElementById('sgst'),
+                  grandTotalEl = document.getElementById('grand-total'),
+                  billNumberInput = document.getElementById('bill-number-input'),
+                  billDateInput = document.getElementById('bill-date-input'),
+                  printButton = document.getElementById('print-bill'),
+                  clearButton = document.getElementById('clear-bill'),
+                  errorMessageEl = document.getElementById('error-message');
+
+            // --- FUNCTIONS ---
+            const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+            const showErrorMessage = (message) => {
+                errorMessageEl.textContent = message;
+                errorMessageEl.classList.remove('hidden');
+            };
+            const hideErrorMessage = () => errorMessageEl.classList.add('hidden');
+
+            const renderBill = () => {
+                billItemsTableBody.innerHTML = '';
+                if (billItems.length === 0) {
+                    billItemsTableBody.appendChild(placeholderRow);
+                } else {
+                    billItems.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-2 py-2 whitespace-nowrap font-medium text-gray-900">${item.name}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-gray-500 text-center">${item.hsn}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-gray-500 text-center">${item.quantity}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-gray-500 text-right">${formatCurrency(item.price)}</td>
+                            <td class="px-2 py-2 whitespace-nowrap font-semibold text-gray-900 text-right">${formatCurrency(item.total)}</td>
+                            <td class="px-2 py-2 text-center no-print">
+                                <button class="text-red-500 hover:text-red-700 delete-item-btn" data-index="${index}" title="Delete Item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </td>
+                        `;
+                        billItemsTableBody.appendChild(row);
+                    });
+                }
+                updateTotals();
+            };
+
+            const updateTotals = () => {
+                const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
+                const cgst = subtotal * CGST_RATE;
+                const sgst = subtotal * SGST_RATE;
+                const grandTotal = subtotal + cgst + sgst;
+
+                subtotalEl.textContent = formatCurrency(subtotal);
+                cgstEl.textContent = formatCurrency(cgst);
+                sgstEl.textContent = formatCurrency(sgst);
+                grandTotalEl.textContent = formatCurrency(grandTotal);
+            };
+            
+            const initializeBillDetails = () => {
+                billNumberInput.value = Math.floor(10000 + Math.random() * 90000);
+                billDateInput.value = new Date().toISOString().slice(0, 10);
+            };
+            
+            const updateShopDetails = () => {
+                displayShopName.textContent = shopNameInput.value.trim() || 'Your Shop Name';
+                displayShopAddress.textContent = shopAddressInput.value.trim() || 'Your Address';
+                displayShopGstin.textContent = shopGstinInput.value.trim().toUpperCase() || 'Your GSTIN';
+            };
+
+            const updateCustomerDetails = () => {
+                displayCustomerName.textContent = customerNameInput.value.trim() || 'N/A';
+                displayCustomerGstin.textContent = customerGstinInput.value.trim().toUpperCase() || 'N/A';
+            };
+
+            // --- EVENT HANDLERS ---
+            const handleAddItem = (e) => {
+                e.preventDefault();
+                hideErrorMessage();
+
+                const name = itemNameInput.value.trim();
+                const hsn = itemHsnInput.value.trim();
+                const quantity = parseInt(itemQuantityInput.value, 10);
+                const price = parseFloat(itemPriceInput.value);
+
+                if (!name || !hsn || isNaN(quantity) || isNaN(price) || quantity <= 0 || price < 0) {
+                    showErrorMessage('Please enter valid item details, including HSN code.');
+                    return;
+                }
+
+                billItems.push({ name, hsn, quantity, price, total: quantity * price });
+                renderBill();
+                itemForm.reset();
+                itemQuantityInput.value = '1';
+                itemNameInput.focus();
+            };
+            
+            const handleClearBill = () => {
+                billItems = [];
+                customerNameInput.value = '';
+                customerGstinInput.value = '';
+                updateCustomerDetails();
+                renderBill();
+                initializeBillDetails();
+            };
+
+            const handleDeleteItem = (e) => {
+                const deleteButton = e.target.closest('.delete-item-btn');
+                if (deleteButton) {
+                    const index = parseInt(deleteButton.dataset.index, 10);
+                    billItems.splice(index, 1);
+                    renderBill();
+                }
+            };
+
+            // --- EVENT LISTENERS ---
+            shopNameInput.addEventListener('input', updateShopDetails);
+            shopAddressInput.addEventListener('input', updateShopDetails);
+            shopGstinInput.addEventListener('input', updateShopDetails);
+            
+            customerNameInput.addEventListener('input', updateCustomerDetails);
+            customerGstinInput.addEventListener('input', updateCustomerDetails);
+            
+            itemForm.addEventListener('submit', handleAddItem);
+            printButton.addEventListener('click', () => window.print());
+            clearButton.addEventListener('click', handleClearBill);
+            billItemsTableBody.addEventListener('click', handleDeleteItem);
+
+            // --- INITIALIZATION ---
+            initializeBillDetails();
+            updateShopDetails();
+            updateCustomerDetails();
+            renderBill();
+        });
+    </script>
+</body>
+</html>
